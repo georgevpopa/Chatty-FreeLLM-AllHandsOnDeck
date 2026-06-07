@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>chatty-local-claude</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0;height:100vh;display:flex;flex-direction:column}
+    header{background:#16213e;padding:1rem 1.5rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid #0f3460}
+    header h1{font-size:1.1rem;color:#e94560}
+    .status-bar{display:flex;gap:0.5rem;flex-wrap:wrap}
+    .badge{padding:2px 10px;border-radius:12px;font-size:0.75rem;font-weight:600}
+    .online{background:#1a4731;color:#4ade80}
+    .offline{background:#4a1a1a;color:#f87171}
+    .configured{background:#1a3a4a;color:#60a5fa}
+    .no_key{background:#2a2a2a;color:#888}
+    main{display:flex;flex:1;overflow:hidden}
+    aside{width:260px;background:#16213e;border-right:1px solid #0f3460;padding:1rem;display:flex;flex-direction:column;gap:1rem;overflow-y:auto}
+    aside h2{font-size:0.85rem;text-transform:uppercase;color:#888;letter-spacing:1px}
+    .model-group{display:flex;flex-direction:column;gap:4px}
+    .model-btn{background:#0f3460;border:1px solid #1a4a7a;color:#e0e0e0;padding:6px 10px;border-radius:6px;cursor:pointer;text-align:left;font-size:0.85rem;transition:all 0.15s}
+    .model-btn:hover{background:#1a5a9a}
+    .model-btn.active{background:#e94560;border-color:#e94560;color:white}
+    .model-btn.disabled{opacity:0.4;cursor:not-allowed}
+    .chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .messages{flex:1;overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1rem}
+    .msg{max-width:80%;padding:10px 14px;border-radius:10px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+    .msg.user{background:#0f3460;align-self:flex-end}
+    .msg.assistant{background:#16213e;border:1px solid #0f3460;align-self:flex-start}
+    .msg.system{background:#1a3a1a;border:1px solid #2a5a2a;align-self:center;font-size:0.85rem;color:#4ade80}
+    .msg.error{background:#3a1a1a;border:1px solid #e94560;align-self:center;font-size:0.85rem;color:#f87171}
+    .input-area{padding:1rem;border-top:1px solid #0f3460;display:flex;gap:0.5rem;background:#16213e}
+    textarea{flex:1;background:#0f3460;border:1px solid #1a4a7a;color:#e0e0e0;border-radius:8px;padding:8px 12px;resize:none;font-size:0.95rem;height:44px;max-height:150px;overflow-y:auto}
+    textarea:focus{outline:none;border-color:#e94560}
+    button.send{background:#e94560;color:white;border:none;border-radius:8px;padding:0 20px;cursor:pointer;font-size:1rem;font-weight:600}
+    button.send:disabled{background:#555;cursor:not-allowed}
+    .tabs{display:flex;gap:4px;padding:0.5rem 1rem;background:#16213e;border-bottom:1px solid #0f3460}
+    .tab{padding:4px 14px;border-radius:6px;cursor:pointer;font-size:0.85rem;color:#888}
+    .tab.active{background:#0f3460;color:#e0e0e0}
+    .aider-area{flex:1;display:none;flex-direction:column;padding:1.5rem;gap:1rem;overflow-y:auto}
+    .aider-area.visible{display:flex}
+    .chat-area.hidden{display:none}
+    input[type=text]{background:#0f3460;border:1px solid #1a4a7a;color:#e0e0e0;border-radius:8px;padding:8px 12px;font-size:0.9rem;width:100%}
+    input[type=text]:focus{outline:none;border-color:#e94560}
+    button.run{background:#0f3460;color:#60a5fa;border:1px solid #1a4a7a;border-radius:8px;padding:8px 20px;cursor:pointer}
+    button.run:hover{background:#1a5a9a}
+    pre{background:#0a0a1a;border:1px solid #0f3460;border-radius:8px;padding:1rem;overflow-x:auto;font-size:0.82rem;color:#a0c4ff;white-space:pre-wrap}
+    .selected-model{font-size:0.8rem;color:#888;padding:0 1rem}
+  </style>
+</head>
+<body>
+<header>
+  <h1>🤖 chatty-local-claude</h1>
+  <div class="status-bar" id="statusBar">loading...</div>
+</header>
+
+<main>
+  <aside>
+    <div>
+      <h2>Local Models</h2>
+      <div class="model-group" id="localModels"></div>
+    </div>
+    <div>
+      <h2>Cloud (Free)</h2>
+      <div class="model-group" id="cloudModels"></div>
+    </div>
+  </aside>
+
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('chat')">💬 Chat</div>
+      <div class="tab" onclick="switchTab('aider')">🛠️ Aider (File Edit)</div>
+    </div>
+    <div class="selected-model" id="selectedModelLabel">No model selected</div>
+
+    <!-- Chat tab -->
+    <div class="chat-area" id="chatTab">
+      <div class="messages" id="messages"></div>
+      <div class="input-area">
+        <textarea id="input" placeholder="Type a message... (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
+        <button class="send" id="sendBtn" onclick="sendMessage()" disabled>Send</button>
+      </div>
+    </div>
+
+    <!-- Aider tab -->
+    <div class="aider-area" id="aiderTab">
+      <div>
+        <label style="font-size:0.85rem;color:#888;display:block;margin-bottom:4px">File path</label>
+        <input type="text" id="aiderFile" placeholder="C:\path\to\file.py or /mnt/d/project/main.py"/>
+      </div>
+      <div>
+        <label style="font-size:0.85rem;color:#888;display:block;margin-bottom:4px">Instruction</label>
+        <input type="text" id="aiderInstruction" placeholder="Fix all bugs and add error handling"/>
+      </div>
+      <button class="run" onclick="runAider()">▶ Run Aider</button>
+      <pre id="aiderOutput" style="display:none"></pre>
+    </div>
+  </div>
+</main>
+
+<script>
+let selectedModel = null;
+
+async function loadProviders() {
+  const [models, status] = await Promise.all([
+    fetch('/api/models').then(r => r.json()),
+    fetch('/api/providers/status').then(r => r.json())
+  ]);
+
+  // Status badges
+  const bar = document.getElementById('statusBar');
+  bar.innerHTML = Object.entries(status).map(([k, v]) =>
+    `<span class="badge ${v}">${k}: ${v}</span>`
+  ).join('');
+
+  // Local models
+  const local = document.getElementById('localModels');
+  if (models.local.length === 0) {
+    local.innerHTML = '<div style="color:#888;font-size:0.8rem">Ollama offline or no models</div>';
+  } else {
+    models.local.forEach(m => {
+      const btn = document.createElement('button');
+      btn.className = 'model-btn';
+      btn.textContent = m;
+      btn.onclick = () => selectModel(m, btn);
+      local.appendChild(btn);
+    });
+  }
+
+  // Cloud models
+  const cloud = document.getElementById('cloudModels');
+  if (models.cloud.length === 0) {
+    cloud.innerHTML = '<div style="color:#888;font-size:0.8rem">No API keys configured</div>';
+  } else {
+    models.cloud.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'model-btn';
+      btn.textContent = `${p.name}${p.rpm ? ` (${p.rpm} rpm)` : ''}`;
+      btn.dataset.model = p.model;
+      btn.onclick = () => selectModel(p.model, btn);
+      cloud.appendChild(btn);
+    });
+  }
+}
+
+function selectModel(model, btn) {
+  document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedModel = model;
+  document.getElementById('selectedModelLabel').textContent = `Model: ${model}`;
+  document.getElementById('sendBtn').disabled = false;
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['chat','aider'][i] === tab));
+  document.getElementById('chatTab').classList.toggle('hidden', tab !== 'chat');
+  document.getElementById('aiderTab').classList.toggle('visible', tab === 'aider');
+}
+
+function addMessage(role, text) {
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.textContent = text;
+  document.getElementById('messages').appendChild(div);
+  div.scrollIntoView({behavior:'smooth'});
+}
+
+async function sendMessage() {
+  const input = document.getElementById('input');
+  const msg = input.value.trim();
+  if (!msg || !selectedModel) return;
+  input.value = '';
+  addMessage('user', msg);
+  document.getElementById('sendBtn').disabled = true;
+
+  try {
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({model: selectedModel, message: msg})
+    });
+    if (r.status === 429) {
+      addMessage('error', '⚠️ Rate limit reached — please select a different provider.');
+      return;
+    }
+    const data = await r.json();
+    addMessage('assistant', data.reply);
+  } catch(e) {
+    addMessage('error', 'Error: ' + e.message);
+  } finally {
+    document.getElementById('sendBtn').disabled = !selectedModel;
+  }
+}
+
+async function runAider() {
+  const file = document.getElementById('aiderFile').value.trim();
+  const instruction = document.getElementById('aiderInstruction').value.trim();
+  if (!file || !instruction || !selectedModel) {
+    alert('Select a model and fill in both fields.');
+    return;
+  }
+  const out = document.getElementById('aiderOutput');
+  out.style.display = 'block';
+  out.textContent = 'Running aider...';
+
+  const r = await fetch('/api/aider', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({model: selectedModel, file_path: file, instruction})
+  });
+  const data = await r.json();
+  out.textContent = data.output || data.errors || 'Done.';
+}
+
+document.getElementById('input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+loadProviders();
+setInterval(loadProviders, 30000); // refresh status every 30s
+</script>
+</body>
+</html>

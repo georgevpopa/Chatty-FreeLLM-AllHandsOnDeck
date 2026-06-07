@@ -1,0 +1,72 @@
+model_list:
+  # ── Local Ollama (priority 1 — always free, no limits) ──────────────────────
+  - model_name: local/qwen2.5-coder:14b
+    litellm_params:
+      model: ollama/qwen2.5-coder:14b
+      api_base: "${OLLAMA_BASE_URL}"
+
+  - model_name: local/qwen2.5-coder:7b
+    litellm_params:
+      model: ollama/qwen2.5-coder:7b
+      api_base: "${OLLAMA_BASE_URL}"
+
+  - model_name: local/qwen3-coder:30b
+    litellm_params:
+      model: ollama/qwen3-coder:30b
+      api_base: "${OLLAMA_BASE_URL}"
+
+  # ── NVIDIA NIM (priority 2 — 40 req/min) ────────────────────────────────────
+  - model_name: cloud/nvidia-llama
+    litellm_params:
+      model: nvidia_nim/meta/llama-3.1-70b-instruct
+      api_key: "${NVIDIA_NIM_API_KEY}"
+      rpm: 40
+
+  # ── Groq (priority 3 — 30 req/min) ──────────────────────────────────────────
+  - model_name: cloud/groq-llama
+    litellm_params:
+      model: groq/llama-3.1-70b-versatile
+      api_key: "${GROQ_API_KEY}"
+      rpm: 30
+
+  - model_name: cloud/groq-mixtral
+    litellm_params:
+      model: groq/mixtral-8x7b-32768
+      api_key: "${GROQ_API_KEY}"
+      rpm: 30
+
+  # ── Cerebras (priority 4 — 30 req/min) ──────────────────────────────────────
+  - model_name: cloud/cerebras-llama
+    litellm_params:
+      model: cerebras/llama3.1-70b
+      api_key: "${CEREBRAS_API_KEY}"
+      rpm: 30
+
+  # ── Gemini (priority 5 — 15 req/min) ────────────────────────────────────────
+  - model_name: cloud/gemini-flash
+    litellm_params:
+      model: gemini/gemini-1.5-flash
+      api_key: "${GEMINI_API_KEY}"
+      rpm: 15
+
+  # ── Mistral (priority 6 — 1 req/sec) ────────────────────────────────────────
+  - model_name: cloud/mistral-small
+    litellm_params:
+      model: mistral/mistral-small-latest
+      api_key: "${MISTRAL_API_KEY}"
+      rpm: 60
+
+  # ── OpenRouter free models ───────────────────────────────────────────────────
+  - model_name: cloud/openrouter-free
+    litellm_params:
+      model: openrouter/meta-llama/llama-3.1-8b-instruct:free
+      api_key: "${OPENROUTER_API_KEY}"
+
+router_settings:
+  routing_strategy: usage-based-routing
+  num_retries: 3
+  retry_after: 5
+
+litellm_settings:
+  drop_params: true
+  request_timeout: 120
