@@ -1,90 +1,90 @@
-# 🤖 chatty-local-claude
+# 🤖 Chatty-FreeLLM-AllHandsOnDeck
 
-> Un AI assistant local cu interfață web, care rotește automat între provideri gratuiți când se atinge limita de rate, și suportă editare de fișiere prin aider.
-
----
-
-## 🎯 Ce face
-
-- **Selectezi modelul** din UI — local (Ollama) sau cloud gratuit
-- **Chatul** trimite mesajele prin litellm proxy la modelul selectat
-- **Dacă dai rate limit** — UI-ul te anunță și selectezi alt provider
-- **Tab Aider** — dai o cale de fișier + instrucțiune și modelul editează fișierul autonom
-- **Status live** al tuturor providerilor, refresh la 30 secunde
+> A local AI assistant with web interface that automatically rotates between free providers when rate limits are hit, and supports file editing through aider.
 
 ---
 
-## 🏗️ Arhitectură
+## 🎯 What It Does
+
+- **Select a model** from the UI — local (Ollama) or free cloud
+- **Chat** sends messages through litellm proxy to the selected model
+- **If you hit rate limit** — the UI notifies you to select another provider
+- **Aider tab** — provide a file path + instruction and the model edits the file autonomously
+- **Live status** of all providers, refreshes every 30 seconds
+
+---
+
+## 🏗️ Architecture
 
 ```
 Browser (http://localhost:8000)
         │
         ▼
-  FastAPI app.py          ← servește UI + API
+  FastAPI app.py          ← serves UI + API
         │
         ▼
-  litellm proxy :4000     ← rutare, retry, rate limit tracking
+  litellm proxy :4000     ← routing, retry, rate limit tracking
         │
    ┌────┴──────────────────────┐
    ▼                           ▼
 Ollama :11434           Cloud APIs (Groq, NVIDIA, etc.)
-(local, nelimitat)      (gratuite, cu rate limits)
+(local, unlimited)      (free, with rate limits)
 ```
 
 ---
 
-## 📋 Cerințe sistem
+## 📋 System Requirements
 
-| Cerință | Detalii |
+| Requirement | Details |
 |---|---|
 | OS | Windows 10/11 |
-| Python | 3.10 – 3.12 (**nu** 3.13/3.14) |
-| RAM | 8GB minim (16GB recomandat) |
-| uv | package manager Python |
-| Ollama | pentru modele locale (opțional) |
+| Python | 3.10 – 3.12 (**not** 3.13/3.14) |
+| RAM | 8GB minimum (16GB recommended) |
+| uv | Python package manager |
+| Ollama | for local models (optional) |
 
 ---
 
-## 🟢 Instalare pas cu pas
+## 🟢 Step-by-Step Installation
 
-### 1. Instalează uv
+### 1. Install uv
 
 ```powershell
 winget install astral-sh.uv
 ```
 
-Verifică: `uv --version`
+Verify: `uv --version`
 
-### 2. Instalează Ollama (pentru modele locale)
+### 2. Install Ollama (for local models)
 
-Descarcă de la: **https://ollama.com/download**
+Download from: **https://ollama.com/download**
 
-Configurează folderul de modele (dacă vrei pe alt drive):
+Configure model folder (if you want it on another drive):
 ```powershell
 [System.Environment]::SetEnvironmentVariable("OLLAMA_MODELS", "E:\AI_Sandbox\models", "User")
 ```
 
-Trage un model:
+Pull a model:
 ```powershell
-ollama pull qwen2.5-coder:14b   # recomandat — cod + loguri
-ollama pull qwen2.5-coder:7b    # mai mic — pentru 8GB RAM
+ollama pull qwen2.5-coder:14b   # recommended — code + logs
+ollama pull qwen2.5-coder:7b    # smaller — for 8GB RAM
 ```
 
-### 3. Clonează repo-ul
+### 3. Clone the repo
 
 ```powershell
-git clone https://github.com/georgevpopa/chatty-local-claude.git
-cd chatty-local-claude
+git clone https://github.com/georgevpopa/Chatty-FreeLLM-AllHandsOnDeck.git
+cd Chatty-FreeLLM-AllHandsOnDeck
 ```
 
-### 4. Configurează .env
+### 4. Configure .env
 
 ```powershell
 copy .env.example .env
 notepad .env
 ```
 
-Completează cheile pentru providerii pe care vrei să îi folosești (toate sunt opționale):
+Fill in the keys for the providers you want to use (all are optional):
 
 ```env
 OLLAMA_BASE_URL=http://localhost:11434
@@ -97,164 +97,162 @@ MISTRAL_API_KEY=...              # https://console.mistral.ai
 OPENROUTER_API_KEY=sk-or-...     # https://openrouter.ai/keys
 ```
 
-### 5. Pornește aplicația
+### 5. Start the application
 
 ```powershell
 start.bat
 ```
 
-Se deschide automat **http://localhost:8000** în browser.
+It automatically opens **http://localhost:8000** in your browser.
 
 ---
 
-## 🚀 Utilizare
+## 🚀 Usage
 
 ### Chat
 
-1. Selectează un model din sidebar (local sau cloud)
-2. Scrie mesajul în câmpul de jos
-3. `Enter` trimite, `Shift+Enter` linie nouă
-4. Dacă apare **⚠️ Rate limit** — selectează alt provider din sidebar
+1. Select a model from the sidebar (local or cloud)
+2. Type your message in the input field
+3. `Enter` sends, `Shift+Enter` for new line
+4. If you see **⚠️ Rate limit** — select another provider from the sidebar
 
-### Aider — editare fișiere
+### Aider — File Editing
 
-1. Click pe tab-ul **🛠️ Aider**
-2. Introdu calea completă a fișierului:
+1. Click on the **🛠️ Aider** tab
+2. Enter the full file path:
    ```
-   C:\proiect\main.py
+   C:\project\main.py
    ```
-3. Introdu instrucțiunea:
+3. Enter the instruction:
    ```
    Fix all bugs and add proper error handling
    ```
 4. Click **▶ Run Aider**
-5. Rezultatul apare în câmpul de output
+5. The result appears in the output field
 
 ---
 
-## 🆓 Provideri gratuiți
+## 🆓 Free Providers
 
-| Provider | Modele disponibile | Limită | Link înregistrare |
+| Provider | Available Models | Limit | Sign-up Link |
 |---|---|---|---|
-| **Ollama** (local) | qwen, llama, mistral, etc. | nelimitat | https://ollama.com/library |
+| **Ollama** (local) | qwen, llama, mistral, etc. | unlimited | https://ollama.com/library |
 | **NVIDIA NIM** | llama-3.1-70b, nemotron, etc. | 40 req/min | https://build.nvidia.com |
 | **Groq** | llama-3.1-70b, mixtral | 30 req/min | https://console.groq.com |
 | **Cerebras** | llama3.1-70b | 30 req/min | https://cloud.cerebras.ai |
 | **Gemini** | gemini-1.5-flash | 15 req/min | https://aistudio.google.com |
 | **Mistral** | mistral-small | 1 req/sec | https://console.mistral.ai |
-| **OpenRouter** | 50+ modele :free | variabil | https://openrouter.ai |
+| **OpenRouter** | 50+ models :free | variable | https://openrouter.ai |
 
-**Strategie recomandată:** Ollama pentru taskuri repetitive, Groq/NVIDIA pentru răspunsuri rapide, Gemini/Mistral ca fallback.
+**Recommended strategy:** Ollama for repetitive tasks, Groq/NVIDIA for fast responses, Gemini/Mistral as fallback.
 
 ---
 
-## 📦 Modele Ollama recomandate
+## 📦 Recommended Ollama Models
 
-| Model | RAM | Ideal pentru |
+| Model | RAM | Best For |
 |---|---|---|
-| `qwen2.5-coder:7b` | ~6 GB | Mașini cu 8GB RAM |
-| `qwen2.5-coder:14b` | ~10 GB | **Recomandat** — cod + analiză loguri |
-| `qwen2.5:3b` | ~2 GB | Răspunsuri rapide, RAM limitat |
-| `qwen3-coder:30b` | ~18 GB | Mașini cu 24+ GB RAM |
+| `qwen2.5-coder:7b` | ~6 GB | Machines with 8GB RAM |
+| `qwen2.5-coder:14b` | ~10 GB | **Recommended** — code + log analysis |
+| `qwen2.5:3b` | ~2 GB | Quick responses, limited RAM |
+| `qwen3-coder:30b` | ~18 GB | Machines with 24+ GB RAM |
 
 ```powershell
-# Descarcă modelul dorit
+# Download your desired model
 ollama pull qwen2.5-coder:14b
 
-# Listează modelele instalate
+# List installed models
 ollama list
 ```
 
 ---
 
-## ⌨️ Comenzi utile
+## ⌨️ Useful Commands
 
-### Gestionare modele Ollama
+### Managing Ollama Models
 
 ```powershell
-ollama list                          # modele instalate
-ollama pull <model>                  # descarcă model
-ollama rm <model>                    # șterge model
-ollama run <model>                   # test rapid în terminal
+ollama list                          # installed models
+ollama pull <model>                  # download model
+ollama rm <model>                    # delete model
+ollama run <model>                   # quick test in terminal
 ```
 
-### Aider direct în terminal
+### Aider Directly in Terminal
 
 ```powershell
-# Pornire interactivă
+# Interactive mode
 $env:OLLAMA_API_BASE="http://localhost:11434"
 aider --model ollama/qwen2.5-coder:14b
 
-# Cu fișier specific
+# With specific file
 aider --model ollama/qwen2.5-coder:14b "C:\path\to\file.py"
 
-# Mod autonom (fără confirmare)
+# Autonomous mode (no confirmation)
 aider --model ollama/qwen2.5-coder:14b --yes-always --message "fix bugs" file.py
 ```
 
-### Comenzi în aider
+### Aider Commands
 
-| Comandă | Descriere |
+| Command | Description |
 |---|---|
-| `/add <file>` | Adaugă fișier în context |
-| `/drop <file>` | Scoate fișier din context |
-| `/clear` | Șterge istoricul |
-| `/diff` | Arată modificările |
-| `/undo` | Anulează ultima modificare |
-| `/exit` | Ieșire |
+| `/add <file>` | Add file to context |
+| `/drop <file>` | Remove file from context |
+| `/clear` | Clear history |
+| `/diff` | Show changes |
+| `/undo` | Undo last change |
+| `/exit` | Exit |
 
 ---
 
-## ❌ FAQ & Probleme frecvente
+## ❌ FAQ & Common Issues
 
-**App-ul nu pornește**
-→ Verifică că `uv` e instalat: `uv --version`
-→ Verifică că portul 8000 nu e ocupat: `netstat -ano | findstr :8000`
+**App won't start**
+→ Verify `uv` is installed: `uv --version`
+→ Check that port 8000 isn't occupied: `netstat -ano | findstr :8000`
 
-**Ollama nu e detectat**
-→ Verifică că Ollama rulează (iconița în system tray)
-→ Testează: `curl http://localhost:11434/api/tags`
+**Ollama not detected**
+→ Verify Ollama is running (icon in system tray)
+→ Test: `curl http://localhost:11434/api/tags`
 
 **`model requires more system memory`**
-→ Modelul e prea mare. Folosește `qwen2.5-coder:7b` sau `qwen2.5:3b`
+→ Model is too large. Use `qwen2.5-coder:7b` or `qwen2.5:3b`
 
-**Rate limit la provider cloud**
-→ Normal — selectează alt provider din sidebar sau folosește Ollama local
+**Rate limit on cloud provider**
+→ Normal — select another provider from the sidebar or use local Ollama
 
-**Aider nu găsește fișierul**
-→ Folosește calea completă (ex: `C:\Users\georg\proiect\main.py`)
-→ Pe WSL folosește format: `/mnt/c/Users/georg/proiect/main.py`
+**Aider can't find the file**
+→ Use the full path (e.g.: `C:\Users\georg\project\main.py`)
+→ On WSL use format: `/mnt/c/Users/georg/project/main.py`
 
-**litellm proxy nu pornește**
-→ Verifică că `.env` există și are cel puțin `OLLAMA_BASE_URL` setat
-→ Rulează manual: `uv run litellm --config litellm_config.yaml --port 4000`
+**litellm proxy won't start**
+→ Verify `.env` exists and has at least `OLLAMA_BASE_URL` set
+→ Run manually: `uv run litellm --config litellm_config.yaml --port 4000`
 
 ---
 
 ## 🗺️ Roadmap
 
-- [x] litellm proxy cu toți providerii gratuiți
+- [x] litellm proxy with all free providers
 - [x] FastAPI backend
-- [x] Web UI cu selector model + status provideri
-- [x] Integrare aider pentru editare fișiere
-- [x] Startup script Windows
-- [ ] Notificare automată rate limit cu switch la next provider
-- [ ] Istoric conversații salvat local
-- [ ] Upload fișier direct din UI
-- [ ] Suport pentru analiză loguri cu pattern detection
+- [x] Web UI with model selector + provider status
+- [x] Aider integration for file editing
+- [x] Windows startup script
+- [ ] Automatic rate limit notification with switch to next provider
+- [ ] Conversation history saved locally
+- [ ] File upload directly from UI
+- [ ] Log analysis support with pattern detection
 
 ---
 
-## 🔒 Securitate
+## 🔒 Security
 
-- Toate cheile API stau în `.env` — **gitignored**, nu se urcă pe GitHub
-- App-ul rulează doar pe `localhost` — nu e expus în rețea
-- Nicio conversație nu e trimisă nicăieri în afara providerului selectat de tine
-
+- All API keys stay in `.env` — **gitignored**, never uploaded to GitHub
+- App runs only on `localhost` — not exposed to the network
+- No conversation is sent anywhere except to the provider you selected
 
 ---
 
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=georgevpopa/Chatty-FreeLLM-AllHandsOnDeck&type=Date)](https://star-history.com/#georgevpopa/Chatty-FreeLLM-AllHandsOnDeck&Date)
-
