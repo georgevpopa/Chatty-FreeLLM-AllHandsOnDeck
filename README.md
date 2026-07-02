@@ -250,3 +250,11 @@ aider --model ollama/qwen2.5-coder:14b --yes-always --message "fix bugs" file.py
 - Toate cheile API stau în `.env` — **gitignored**, nu se urcă pe GitHub
 - App-ul rulează doar pe `localhost` — nu e expus în rețea
 - Nicio conversație nu e trimisă nicăieri în afara providerului selectat de tine
+
+
+---
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=georgevpopa/Chatty-FreeLLM-AllHandsOnDeck&type=Date)](https://star-history.com/#georgevpopa/Chatty-FreeLLM-AllHandsOnDeck&Date)
+
